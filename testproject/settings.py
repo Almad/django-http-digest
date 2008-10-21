@@ -46,6 +46,9 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.admin',
+    'testapi',
+    # OK, this is not really installed, but we want our testsuite to eat it
+    'djangohttpdigest',
 )
 
 TEST_DATABASE_CHARSET="utf8"
