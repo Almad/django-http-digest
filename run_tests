@@ -1,0 +1,4 @@
+#!/bin/sh
+cd testproject
+./manage.py test $1
+exit $?;
