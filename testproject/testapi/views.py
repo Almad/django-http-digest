@@ -1,5 +1,7 @@
 from django.http import HttpResponse
+from djangohttpdigest import protect_digest
 
+@protect_digest(realm='simple', username='username', password='password')
 def simpleprotected(request):
     """
     This is example of far too simply protected value
