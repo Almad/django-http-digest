@@ -20,12 +20,6 @@ class HttpDigestClient(Client):
         Authenticate using HTTP digest and return our second request.
         If problem occurs and we cannot repeat our request, return original one.
         """
-        if not response.has_key('WWW-Authenticate'):
-            # server has not send needed authentication information
-            return response
-        (authentication_method, auth) = response['WWW-Authenticate'].split(" ", 1)
-        if authmeth.lower() != 'digest':
-            raise ValueError("Unsupported authentication method %s" % authmeth)
     
     def get(self, url, data=None, *args, **kwargs):
         data = data or {}
