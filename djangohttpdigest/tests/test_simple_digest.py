@@ -28,10 +28,8 @@ class TestSimpleDigest(LiveServerTestCase):
 #        response = client.get(self.path)
 #        self.assertEquals(200, response.status_code)
         
-
-    def test_autentization_compatible(self):
-        """ Check our server-side autentization is compatible with standard (urllib2) one """
-        
+    
+    def _check_authentication_compatibility(self, uri):
         auth_handler = urllib2.HTTPDigestAuthHandler()
         auth_handler.add_password('simple', self.url, 'username', 'password')
         opener = urllib2.build_opener(auth_handler)
@@ -48,4 +46,9 @@ class TestSimpleDigest(LiveServerTestCase):
             raise
         self.assertEquals(200, response.code)
         response.close()
+    
+    def test_autentization_compatible(self):
+        """ Check our server-side autentizations is compatible with standard (urllib2) one """
+        self._check_authentication_compatibility(uri='/testapi/simpleprotected/')
+        self._check_authentication_compatibility(uri='/testapi/modelprotected/')
 
