@@ -6,36 +6,7 @@ import urllib2
 from md5 import md5
 #from sha import sha
 
-class Digestor(object):
-    """ Main class for handling digest algorithms as described in RFC 2617 """
-    
-    # map string representation of algorithm to hash function
-    algorithm_implementation_map = {
-        'md5' : md5,
-#        'sha' : sha,
-    }
-    
-    def __init__(self, realm=None, qop=None, opaque=None, algorithm=None):
-        object.__init__(self)
-        
-        self.algorithm = algorithm or 'md5'
-        self.opaque = opaque or 'ToDoMoveThisToSettings'
-        self.qop = qop or 'auth'
-        self.realm = realm or None
-        
-        assert self.algorithm in self.algorithm_implementation_map
-    
-    def get_digest_challenge(self):
-        """ Return HTTP digest challenge, which has to be placed into www-authenticate header"""
-        
-        nonce = self.algorithm_implementation_map[self.algorithm]("%s:%s" % (time(), self.realm)).hexdigest()
-        
-        return 'Digest realm="%(realm)s", qop="%(qop)s", nonce="%(nonce)s", opaque="%(opaque)s"' % {
-            'realm' : self.realm,
-            'qop' : self.qop,
-            'nonce' : nonce,
-            'opaque' : self.opaque
-        }
+__all__ = ("Digestor", "parse_authorization_header", "check_credentials", "check_hardcoded_authentication")
 
 def parse_authorization_header(header):
     """ Parse requests authorization header into list.
@@ -56,42 +27,83 @@ def parse_authorization_header(header):
         if not params.has_key(field):
             raise ValueError("Required field %s not found" % field)
 
-    # check for qop companions
-    # (RFC 2617, sect. 3.2.2)
+    # check for qop companions (sect. 3.2.2)
     if params.has_key("qop") and not params.has_key("cnonce") and params.has_key("cn"):
         raise ValueError("qop sent without cnonce and cn")
 
     return params
 
-def check_credentials(request):
-    """
-    Check if request contains credentials.
-    Raise HttpResponseBadRequest if malformed header was send.
-    """
-    if request.META.has_key('AUTHORIZATION'):
-        header = parse_authorization_header(request.meta['AUTHORIZATION'])
-    else:
-        return False
+class Digestor(object):
+    """ Main class for handling digest algorithms as described in RFC 2617 """
     
-def check_hardcoded_authentication(parsed_header, method, path, params, realm, username, password):
-    """ Do information sent in header authenticates against given credentials? """
-    assert parsed_header['qop'] == 'auth'
+    # map string representation of algorithm to hash function
+    algorithm_implementation_map = {
+        'md5' : md5,
+#        'sha' : sha,
+    }
     
-    # compute A1 according to RFC 2617, section 3.2.2.2
-    a1 = md5("%s:%s:%s" % (username, realm, password)).hexdigest()
-    # A2, according to section 3.2.2.3
-    a2 = md5("%s:%s" % (method,path)).hexdigest()
+    def __init__(self, method, path, realm=None, qop=None, opaque=None, algorithm=None, username=None, password=None):
+        object.__init__(self)
+        
+        self.method = method
+        self.path = path
+        self.algorithm = algorithm or 'md5'
+        self.opaque = opaque or 'ToDoMoveThisToSettings'
+        self.qop = qop or 'auth'
 
-    request = "%s:%s:%s:%s:%s" % (
-            parsed_header["nonce"],
-            parsed_header["nc"],
-            parsed_header["cnonce"],
-            parsed_header["qop"],
-            a2
-    )
+        self.realm = realm or None
+        
+        self.parsed_header = None
+        
+        assert self.algorithm in self.algorithm_implementation_map
     
-
-    result_secret = md5("%s:%s" % (a1, request)).hexdigest()
+    def get_a1(self, realm, username, password):
+        # compute A1 according to RFC 2617, section 3.2.2.2
+        return self.algorithm_implementation_map[self.algorithm]("%s:%s:%s" % (username, realm, password)).hexdigest()
     
-    return parsed_header['response'] == result_secret 
+    def get_digest_challenge(self):
+        """ Return HTTP digest challenge, which has to be placed into www-authenticate header"""
+        
+        nonce = self.algorithm_implementation_map[self.algorithm]("%s:%s" % (time(), self.realm)).hexdigest()
+        
+        return 'Digest realm="%(realm)s", qop="%(qop)s", nonce="%(nonce)s", opaque="%(opaque)s"' % {
+            'realm' : self.realm,
+            'qop' : self.qop,
+            'nonce' : nonce,
+            'opaque' : self.opaque
+        }
+    
+    def get_client_secret(self):
+        """ Get secret as computed by client """
+        return self.parsed_header['response']
+    
+    def get_server_secret(self, a1):
+        """ Compute server secret from provided, partially computed values """
+        assert 'auth' == self.parsed_header['qop']
+        
+        # A2, according to section 3.2.2.3
+        a2 = self.algorithm_implementation_map[self.algorithm]("%s:%s" % (self.method, self.path)).hexdigest()
+    
+        request_digest = "%s:%s:%s:%s:%s" % (
+                self.parsed_header["nonce"],
+                self.parsed_header["nc"],
+                self.parsed_header["cnonce"],
+                self.parsed_header["qop"],
+                a2
+        )
+        
+    
+        return self.algorithm_implementation_map[self.algorithm]("%s:%s" % (a1, request_digest)).hexdigest()
+    
+    def parse_authorization_header(self, header):
+        """ Provide wrap around parse_authorization_header function for those who like to have
+        everything with digest.
+        This also stores parsed header in instvar, so we must not passing it around.
+        """
+        self.parsed_header = parse_authorization_header(header)
+        return self.parsed_header
+    
+    def get_client_username(self, username):
+        return self.parsed_header['username']
+    
     
