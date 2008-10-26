@@ -1,5 +1,6 @@
 import urllib2
 import logging
+from md5 import md5
 from django.test import TestCase
 
 from djangohttpdigest.client import HttpDigestClient
@@ -29,12 +30,30 @@ class TestSimpleDigest(LiveServerTestCase):
 #        self.assertEquals(200, response.status_code)
         
     
-    def _check_authentication_compatibility(self, uri):
+    def _check_authentication_compatibility(self, path):
+        
+        # first handle bad path
+        
+        auth_handler = urllib2.HTTPDigestAuthHandler()
+        auth_handler.add_password('simple', self.url, 'username', 'badpassword')
+        opener = urllib2.build_opener(auth_handler)
+        
+        request = urllib2.Request(self.url+path)
+        try:
+            response = opener.open(request)
+            self.fail("Exception expected to be raised")
+        except urllib2.HTTPError, err:
+            self.assertEquals(401, err.code)
+            if err.fp:
+                err.fp.close()
+
+        # then happy path
+        
         auth_handler = urllib2.HTTPDigestAuthHandler()
         auth_handler.add_password('simple', self.url, 'username', 'password')
         opener = urllib2.build_opener(auth_handler)
         
-        request = urllib2.Request(self.url+self.path)
+        request = urllib2.Request(self.url+path)
         try:
             response = opener.open(request)
         except urllib2.HTTPError, err:
@@ -47,8 +66,15 @@ class TestSimpleDigest(LiveServerTestCase):
         self.assertEquals(200, response.code)
         response.close()
     
-    def test_autentization_compatible(self):
+    def test_autentization_compatible_simple(self):
         """ Check our server-side autentizations is compatible with standard (urllib2) one """
-        self._check_authentication_compatibility(uri='/testapi/simpleprotected/')
-        self._check_authentication_compatibility(uri='/testapi/modelprotected/')
+        self._check_authentication_compatibility(path='/testapi/simpleprotected/')
+        
+    def test_autentization_compatible_model(self):
+        # add something to test agains
+        from testapi.models import ModelWithRealmSet
+        
+        ModelWithRealmSet.objects.create(realm='simple', username='username', secret=md5("%s:%s:%s" % ("username", "simple", "password")).hexdigest()) 
+        
+        self._check_authentication_compatibility(path='/testapi/modelprotected/')
 

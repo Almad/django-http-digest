@@ -3,7 +3,7 @@
 Various authentication cases, used by decorators.
 """
 
-__all__ = ("SimpleHardcodedAuthenticator")
+__all__ = ("SimpleHardcodedAuthenticator", "ModelAuthenticator")
 
 class Authenticator(object):
     """ Authenticator """
@@ -25,7 +25,10 @@ class Authenticator(object):
         Return bool whether it matches.
         """
         if not self.a1:
-            self.get_a1(digestor=digestor)
+            try:
+                self.get_a1(digestor=digestor)
+            except ValueError:
+                return False
         
         assert self.a1 is not None
         
@@ -56,22 +59,24 @@ class SimpleHardcodedAuthenticator(Authenticator):
 
 class ModelAuthenticator(Authenticator):
     def __init__(self, model, realm, realm_field, username_field, secret_field):
-         self.model = model
-         self.realm = realm
-         self.realm_field = realm_field
-         self.username_field = username_field
-         self.secret_field = secret_field
+        Authenticator.__init__(self)
+        
+        self.model = model
+        self.realm = realm
+        self.realm_field = realm_field
+        self.username_field = username_field
+        self.secret_field = secret_field
     
     
     def get_a1(self, digestor):
         try:
-            inst = model.objects.get(**{
+            inst = self.model.objects.get(**{
                 self.realm_field : self.realm,
                 self.username_field : digestor.get_client_username()
             })
             self.a1 = getattr(inst, self.secret_field)
             return self.a1
         
-        except model.DoesNotExist:
+        except self.model.DoesNotExist:
             raise ValueError()
     

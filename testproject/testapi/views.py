@@ -13,10 +13,11 @@ def simpleprotected(request):
     """
     return HttpResponse('')
 
-@protect_digest_model(model=ModelWithRealmSet,
+@protect_digest_model(realm='simple',
+      model=ModelWithRealmSet,
       realm_field='realm',
       username_field='username',
-      secret_field='secret_field'
+      secret_field='secret'
 )
 def modelprotected(request):
     """
