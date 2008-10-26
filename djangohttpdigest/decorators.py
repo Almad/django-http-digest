@@ -2,7 +2,7 @@ from django.http import HttpResponseBadRequest
 
 from http import HttpResponseNotAuthorized
 from digest import Digestor, parse_authorization_header
-from authentication import SimpleHardcodedAuthenticator
+from authentication import SimpleHardcodedAuthenticator, ModelAuthenticator
 
 __all__ = ("protect_digest", "protect_digest_model")
 
@@ -34,11 +34,11 @@ def protect_digest(realm, username, password):
         return _wrapper
     return _innerDecorator
 
-def protect_digest_model(model, realm_field='realm', username_field='username', secret_field='secret_field'):
+def protect_digest_model(model, realm, realm_field='realm', username_field='username', secret_field='secret_field'):
     def _innerDecorator(function):
         def _wrapper(request, *args, **kwargs):
             
-            digestor = Digestor(realm=realm)
+            digestor = Digestor(method=request.method, path=request.path, realm=realm)
             
             if request.META.has_key('HTTP_AUTHORIZATION'):
                 # successfull auth
@@ -50,9 +50,9 @@ def protect_digest_model(model, realm_field='realm', username_field='username', 
                 except ValueError, err:
                     return HttpResponseBadRequest(err)
 
-                authenticator = SimpleHardcodedAuthenticator(realm=realm, username=username, password=password)
-                
-                if authenticator.secret_passed():
+                authenticator = ModelAuthenticator(model=model, realm=realm, realm_field=realm_field, username_field=username_field, secret_field=secret_field)
+
+                if authenticator.secret_passed(digestor):
                     return function(request, *args, **kwargs)
                 
             # nothing received, return challenge

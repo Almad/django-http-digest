@@ -103,7 +103,7 @@ class Digestor(object):
         self.parsed_header = parse_authorization_header(header)
         return self.parsed_header
     
-    def get_client_username(self, username):
+    def get_client_username(self):
         return self.parsed_header['username']
     
     
