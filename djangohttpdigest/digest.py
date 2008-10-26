@@ -1,9 +1,41 @@
 """
 Helper functions and algorithms for computing HTTP digest thingies.
 """
-import time
+from time import time
 import urllib2
 from md5 import md5
+#from sha import sha
+
+class Digestor(object):
+    """ Main class for handling digest algorithms as described in RFC 2617 """
+    
+    # map string representation of algorithm to hash function
+    algorithm_implementation_map = {
+        'md5' : md5,
+#        'sha' : sha,
+    }
+    
+    def __init__(self, realm=None, qop=None, opaque=None, algorithm=None):
+        object.__init__(self)
+        
+        self.algorithm = algorithm or 'md5'
+        self.opaque = opaque or 'ToDoMoveThisToSettings'
+        self.qop = qop or 'auth'
+        self.realm = realm or None
+        
+        assert self.algorithm in self.algorithm_implementation_map
+    
+    def get_digest_challenge(self):
+        """ Return HTTP digest challenge, which has to be placed into www-authenticate header"""
+        
+        nonce = self.algorithm_implementation_map[self.algorithm]("%s:%s" % (time(), self.realm)).hexdigest()
+        
+        return 'Digest realm="%(realm)s", qop="%(qop)s", nonce="%(nonce)s", opaque="%(opaque)s"' % {
+            'realm' : self.realm,
+            'qop' : self.qop,
+            'nonce' : nonce,
+            'opaque' : self.opaque
+        }
 
 def parse_authorization_header(header):
     """ Parse requests authorization header into list.
@@ -30,22 +62,6 @@ def parse_authorization_header(header):
         raise ValueError("qop sent without cnonce and cn")
 
     return params
-
-def get_digest_challenge(realm):
-    """ Return HTTP digest challenge, which has to be placed into www-authenticate header"""
-    
-    algorithm = 'md5'
-    qop = 'auth'
-    opaque = 'ToDoMoveThisToSettings'
-    
-    nonce = md5("%s:%s" % (time.time(), realm)).hexdigest()
-    
-    return 'Digest realm="%(realm)s", qop="%(qop)s", nonce="%(nonce)s", opaque="%(opaque)s"' % {
-        'realm' : realm,
-        'qop' : qop,
-        'nonce' : nonce,
-        'opaque' : opaque
-    }
 
 def check_credentials(request):
     """
