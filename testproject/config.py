@@ -17,7 +17,7 @@ SITE_ID =1
 MANAGERS = ADMINS
 
 DATABASE_ENGINE = "sqlite3"
-DATABASE_NAME = "/tmp/test.db"
+DATABASE_NAME = "/home/almad/tmp/httpdigesttest.db"
 DATABASE_USER = ""
 DATABASE_PASSWORD = ""
 DATABASE_HOST = "localhost"

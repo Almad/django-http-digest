@@ -9,5 +9,4 @@ def simpleprotected(request):
     view returns 401 on failure or for challenge, 200 with empty body
     on successfull authorization. 
     """
-    raise ValueError()
     return HttpResponse('')

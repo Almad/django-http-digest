@@ -1,7 +1,7 @@
 import urllib2
 
 from django.test import TestCase
-from django.http import HttpRequest, HttpResponseBadRequest
+from django.http import HttpRequest
 from django.core.handlers.wsgi import WSGIRequest
 
 from djangohttpdigest.digest import check_credentials, parse_authorization_header
@@ -32,4 +32,4 @@ class TestSimpleDigest(TestCase):
     def test_parse_authorization_header(self):
         """ Authorization header parsing, for various inputs """
         
-        self.assertRaises(HttpResponseBadRequest, lambda:parse_authorization_header(''))
+        self.assertRaises(ValueError, lambda:parse_authorization_header(''))
