@@ -1,11 +1,14 @@
 from django.http import HttpResponseBadRequest
 
 from http import HttpResponseNotAuthorized
-from digest import get_digest_challenge, parse_authorization_header, check_hardcoded_authentication
+from digest import Digestor, parse_authorization_header, check_hardcoded_authentication
 
 def protect_digest(realm, username, password):
     def _innerDecorator(function):
         def _wrapper(request, *args, **kwargs):
+            
+            digestor = Digestor(realm=realm)
+            
             if request.META.has_key('HTTP_AUTHORIZATION'):
                 # successfull auth
                 if request.META['AUTH_TYPE'].lower() != 'digest':
@@ -20,7 +23,7 @@ def protect_digest(realm, username, password):
             
             # nothing received, return challenge
             response = HttpResponseNotAuthorized("Not Authorized")
-            response['www-authenticate'] = get_digest_challenge(realm)
+            response['www-authenticate'] = digestor.get_digest_challenge()
             return response
         return _wrapper
     return _innerDecorator
