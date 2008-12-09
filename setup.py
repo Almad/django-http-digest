@@ -11,14 +11,13 @@ project_dir = 'djangohttpdigest'
 # Dynamically calculate the version based on django.VERSION.
 version = __import__('djangohttpdigest').__versionstr__
 setup(
-    name = "Django HTTP Digest",
+    name = "djangohttpdigest",
     version = version,
     url = 'http://devel.almad.net/trac/django-http-digest/',
     author = 'Lukas Linhart',
     author_email = 'bugs@almad.net',
     description = 'Support for HTTP digest in Django web framework',
     packages = ['djangohttpdigest'],
-    data_files = data_files,
     scripts = [],
     classifiers=[
         "Development Status :: 4 - Beta",
