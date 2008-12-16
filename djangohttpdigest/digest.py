@@ -14,8 +14,9 @@ def parse_authorization_header(header):
     # digest is marked as part of header and causes problem
     # parsing, so remove its
     
-    if header.startswith('Digest '):
-        header = header[len('Digest '):]
+    if not header.startswith('Digest '):
+        raise ValueError("Header do not start with Digest")
+    header = header[len('Digest '):]
     
     # Convert the auth params to a dict
     items = urllib2.parse_http_list(header)
