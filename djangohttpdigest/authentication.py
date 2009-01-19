@@ -34,7 +34,6 @@ class Authenticator(object):
         
         client_secret = digestor.get_client_secret()
         server_secret = digestor.get_server_secret(a1=self.a1)
-        
         return client_secret == server_secret
 
 def check_hardcoded_authentication(parsed_header, method, path, params, realm, username, password):
