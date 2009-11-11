@@ -1,9 +1,10 @@
-
 """
 Various authentication cases, used by decorators.
 """
 
-__all__ = ("SimpleHardcodedAuthenticator", "ModelAuthenticator")
+__all__ = ("SimpleHardcodedAuthenticator", "ModelAuthenticator", "ClearTextModelAuthenticator")
+
+from hashlib import md5
 
 class Authenticator(object):
     """ Authenticator """
@@ -78,4 +79,28 @@ class ModelAuthenticator(Authenticator):
         
         except self.model.DoesNotExist:
             raise ValueError()
-    
+
+class ClearTextModelAuthenticator(Authenticator):
+    def __init__(self, model, realm, realm_field, username_field, password_field):
+        Authenticator.__init__(self)
+
+        self.model = model
+        self.realm = realm
+        self.realm_field = realm_field
+        self.username_field = username_field
+        self.password_field = password_field
+
+
+    def get_a1(self, digestor):
+        try:
+            username = digestor.get_client_username()
+            inst = self.model.objects.get(**{
+                self.realm_field : self.realm,
+                self.username_field : username
+            })
+            password = getattr(inst, self.password_field)
+            self.a1 = md5("%s:%s:%s" % (username, self.realm, password)).hexdigest()
+            return self.a1
+
+        except self.model.DoesNotExist:
+            raise ValueError()

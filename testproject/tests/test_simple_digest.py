@@ -7,6 +7,8 @@ from django.db import transaction
 
 from djangosanetesting import HttpTestCase
 
+from testapi.models import ModelWithRealmSet, ClearTextModel
+
 class TestSimpleDigest(HttpTestCase):
     path = '/testapi/simpleprotected/'
     url = 'http://localhost:8000'
@@ -43,6 +45,8 @@ class TestSimpleDigest(HttpTestCase):
             response = opener.open(request)
             self.fail("Exception expected to be raised")
         except urllib2.HTTPError, err:
+            if err.code != 401 and err.fp:
+                logging.error(err.fp.read())
             self.assertEquals(401, err.code)
             if err.fp:
                 err.fp.close()
@@ -72,11 +76,20 @@ class TestSimpleDigest(HttpTestCase):
         
     def test_autentization_compatible_model(self):
         # add something to test agains
-        from testapi.models import ModelWithRealmSet
         secret = md5("%s:%s:%s" % ("username", "simple", "password")).hexdigest()
         ModelWithRealmSet.objects.create(realm='simple', username='username', secret=secret)
 
         transaction.commit()
         
         self._check_authentication_compatibility(path='/testapi/modelprotected/')
+
+    def test_autentization_compatible_model_with_cleartext_field(self):
+        # add something to test agains
+        secret = md5("%s:%s:%s" % ("username", "simple", "password")).hexdigest()
+
+        ClearTextModel.objects.create(realm='simple', username='username', password='password')
+
+        transaction.commit()
+
+        self._check_authentication_compatibility(path='/testapi/modelcleartextprotected/')
 
