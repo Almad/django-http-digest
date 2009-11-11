@@ -2,7 +2,7 @@ from django.db.transaction import commit_on_success
 from django.http import HttpResponse
 from djangohttpdigest.decorators import protect_digest, protect_digest_model
 
-from testapi.models import ModelWithRealmSet, ClearTextModel
+from testapi.models import ModelWithRealmSet, ClearTextModel, ClearTextModelWithDefaultRealm
 
 @protect_digest(realm='simple', username='username', password='password')
 def simpleprotected(request):
@@ -37,3 +37,16 @@ def modelcleartextprotected(request):
     Example of model-protected site.
     """
     return HttpResponse('')
+
+@protect_digest_model(realm='simple',
+      model=ClearTextModelWithDefaultRealm,
+      realm_field=None,
+      username_field='username',
+      password_field='password'
+)
+def modelcleartextprotectedwithdefaultrealm(request):
+    """
+    Example of model-protected site.
+    """
+    return HttpResponse('')
+

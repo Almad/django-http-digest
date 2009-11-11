@@ -18,10 +18,11 @@ def protect_digest(realm, username, password):
                 except ValueError, err:
                     return HttpResponseBadRequest(err)
 
-                authenticator = SimpleHardcodedAuthenticator(server_realm=realm, server_username=username, server_password=password)
-                
-                if authenticator.secret_passed(digestor):
-                    return function(request, *args, **kwargs)
+                if parsed_header['realm'] == realm:
+                    authenticator = SimpleHardcodedAuthenticator(server_realm=realm, server_username=username, server_password=password)
+
+                    if authenticator.secret_passed(digestor):
+                        return function(request, *args, **kwargs)
                 
             # nothing received, return challenge
             response = HttpResponseNotAuthorized("Not Authorized")
@@ -35,20 +36,21 @@ def protect_digest_model(model, realm, realm_field='realm', username_field='user
         def _wrapper(request, *args, **kwargs):
             
             digestor = Digestor(method=request.method, path=request.path, realm=realm)
-            
             if request.META.has_key('HTTP_AUTHORIZATION'):
                 try:
                     parsed_header = digestor.parse_authorization_header(request.META['HTTP_AUTHORIZATION'])
                 except ValueError, err:
                     return HttpResponseBadRequest(err)
-                
-                if password_field:
-                    authenticator = ClearTextModelAuthenticator(model=model, realm=realm, realm_field=realm_field, username_field=username_field, password_field=password_field)
-                else:
-                    authenticator = ModelAuthenticator(model=model, realm=realm, realm_field=realm_field, username_field=username_field, secret_field=secret_field)
 
-                if authenticator.secret_passed(digestor):
-                    return function(request, *args, **kwargs)
+                if parsed_header['realm'] == realm:
+                    if password_field:
+                        print realm_field
+                        authenticator = ClearTextModelAuthenticator(model=model, realm=realm, realm_field=realm_field, username_field=username_field, password_field=password_field)
+                    else:
+                        authenticator = ModelAuthenticator(model=model, realm=realm, realm_field=realm_field, username_field=username_field, secret_field=secret_field)
+
+                    if authenticator.secret_passed(digestor):
+                        return function(request, *args, **kwargs)
                 
             # nothing received, return challenge
             response = HttpResponseNotAuthorized("Not Authorized")

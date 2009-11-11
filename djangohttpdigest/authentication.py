@@ -70,10 +70,13 @@ class ModelAuthenticator(Authenticator):
     
     def get_a1(self, digestor):
         try:
-            inst = self.model.objects.get(**{
-                self.realm_field : self.realm,
-                self.username_field : digestor.get_client_username()
-            })
+            username = digestor.get_client_username()
+            pars = {
+                self.username_field : username
+            }
+            if self.realm_field:
+                pars[self.realm_field] = self.realm
+            inst = self.model.objects.get(**pars)
             self.a1 = getattr(inst, self.secret_field)
             return self.a1
         
@@ -94,10 +97,12 @@ class ClearTextModelAuthenticator(Authenticator):
     def get_a1(self, digestor):
         try:
             username = digestor.get_client_username()
-            inst = self.model.objects.get(**{
-                self.realm_field : self.realm,
+            pars = {
                 self.username_field : username
-            })
+            }
+            if self.realm_field:
+                pars[self.realm_field] = self.realm
+            inst = self.model.objects.get(**pars)
             password = getattr(inst, self.password_field)
             self.a1 = md5("%s:%s:%s" % (username, self.realm, password)).hexdigest()
             return self.a1

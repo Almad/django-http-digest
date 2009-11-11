@@ -7,7 +7,7 @@ from django.db import transaction
 
 from djangosanetesting import HttpTestCase
 
-from testapi.models import ModelWithRealmSet, ClearTextModel
+from testapi.models import ModelWithRealmSet, ClearTextModel, ClearTextModelWithDefaultRealm
 
 class TestSimpleDigest(HttpTestCase):
     path = '/testapi/simpleprotected/'
@@ -85,11 +85,17 @@ class TestSimpleDigest(HttpTestCase):
 
     def test_autentization_compatible_model_with_cleartext_field(self):
         # add something to test agains
-        secret = md5("%s:%s:%s" % ("username", "simple", "password")).hexdigest()
-
         ClearTextModel.objects.create(realm='simple', username='username', password='password')
-
         transaction.commit()
 
         self._check_authentication_compatibility(path='/testapi/modelcleartextprotected/')
+
+
+    def test_autentization_compatible_model_with_cleartext_field_without_realm(self):
+        # add something to test agains
+        ClearTextModelWithDefaultRealm.objects.create(username='username', password='password')
+
+        transaction.commit()
+
+        self._check_authentication_compatibility(path='/testapi/modelcleartextprotectedwithdefaultrealm/')
 
