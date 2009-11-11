@@ -3,6 +3,8 @@ import logging
 from md5 import md5
 from djangohttpdigest.client import HttpDigestClient
 
+from django.db import transaction
+
 from djangosanetesting import HttpTestCase
 
 class TestSimpleDigest(HttpTestCase):
@@ -71,8 +73,10 @@ class TestSimpleDigest(HttpTestCase):
     def test_autentization_compatible_model(self):
         # add something to test agains
         from testapi.models import ModelWithRealmSet
-        
-        ModelWithRealmSet.objects.create(realm='simple', username='username', secret=md5("%s:%s:%s" % ("username", "simple", "password")).hexdigest()) 
+        secret = md5("%s:%s:%s" % ("username", "simple", "password")).hexdigest()
+        ModelWithRealmSet.objects.create(realm='simple', username='username', secret=secret)
+
+        transaction.commit()
         
         self._check_authentication_compatibility(path='/testapi/modelprotected/')
 

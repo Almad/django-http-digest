@@ -1,8 +1,8 @@
 from django.http import HttpResponseBadRequest
 
-from http import HttpResponseNotAuthorized
-from digest import Digestor, parse_authorization_header
-from authentication import SimpleHardcodedAuthenticator, ModelAuthenticator
+from djangohttpdigest.http import HttpResponseNotAuthorized
+from djangohttpdigest.digest import Digestor, parse_authorization_header
+from djangohttpdigest.authentication import SimpleHardcodedAuthenticator, ModelAuthenticator
 
 __all__ = ("protect_digest", "protect_digest_model")
 
@@ -13,10 +13,6 @@ def protect_digest(realm, username, password):
             digestor = Digestor(method=request.method, path=request.path, realm=realm)
             
             if request.META.has_key('HTTP_AUTHORIZATION'):
-                # successfull auth
-                if request.META['AUTH_TYPE'].lower() != 'digest':
-                    raise NotImplementedError("Only digest supported")
-                
                 try:
                     parsed_header = digestor.parse_authorization_header(request.META['HTTP_AUTHORIZATION'])
                 except ValueError, err:
@@ -41,10 +37,6 @@ def protect_digest_model(model, realm, realm_field='realm', username_field='user
             digestor = Digestor(method=request.method, path=request.path, realm=realm)
             
             if request.META.has_key('HTTP_AUTHORIZATION'):
-                # successfull auth
-                if request.META['AUTH_TYPE'].lower() != 'digest':
-                    raise NotImplementedError("Only digest supported")
-                
                 try:
                     parsed_header = digestor.parse_authorization_header(request.META['HTTP_AUTHORIZATION'])
                 except ValueError, err:
