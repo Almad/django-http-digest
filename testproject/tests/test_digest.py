@@ -1,13 +1,10 @@
 import re
-import urllib2
-
-from django.test import TestCase
-from django.http import HttpRequest
-from django.core.handlers.wsgi import WSGIRequest
 
 from djangohttpdigest.digest import Digestor, parse_authorization_header
 
-class TestDigestor(TestCase):
+from djangosanetesting import UnitTestCase
+
+class TestDigestor(UnitTestCase):
     """ Test digestor, our wrapping class for handling digests """
     
     def setUp(self):
@@ -62,7 +59,7 @@ class TestDigestor(TestCase):
         auth_string = 'username="rpgpedia", realm="extproject", nonce="1cc6ab869fca869c2c085d78a3729a66", uri="/extproject/project/fc8afe5e-da35-4fe2-a991-7b26c829cde5/user/rpgpedia/salt/", response="69ead146a246cd51bbd076244d2e455b", opaque="ToDoMoveThisToSettings", algorithm="MD5", qop=auth, nc=00000001, cnonce="a84f8e6cfcd50a75"'
         self.assertRaises(ValueError, lambda:self.digestor.parse_authorization_header(auth_string))
     
-class TestSimpleDigest(TestCase):
+class TestSimpleDigest(UnitTestCase):
     
     environment = {
         'HTTP_COOKIE':       '',
