@@ -1,13 +1,11 @@
 import urllib2
 import logging
 from md5 import md5
-from django.test import TestCase
-
 from djangohttpdigest.client import HttpDigestClient
 
-from module_test import LiveServerTestCase
+from djangosanetesting import HttpTestCase
 
-class TestSimpleDigest(LiveServerTestCase):
+class TestSimpleDigest(HttpTestCase):
     path = '/testapi/simpleprotected/'
     url = 'http://localhost:8000'
     

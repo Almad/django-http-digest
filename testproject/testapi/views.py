@@ -1,3 +1,4 @@
+from django.db.transaction import commit_on_success
 from django.http import HttpResponse
 from djangohttpdigest.decorators import protect_digest, protect_digest_model
 

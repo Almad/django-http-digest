@@ -1,5 +1,0 @@
-#!/bin/sh
-cd testproject
-#./manage.py test $1
-./livetests.py
-exit $?;
