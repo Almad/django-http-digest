@@ -1,0 +1,6 @@
+python-djangohttpdigest (0.2.1) unstable; urgency=low
+
+  * Initial debian version
+
+ -- Lukas Linhart <lukas.linhart@centrumholdings.com>  Thu, 12 Nov 2009 13:07:07 +0100
+
