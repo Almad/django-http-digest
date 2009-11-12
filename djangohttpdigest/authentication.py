@@ -107,5 +107,5 @@ class ClearTextModelAuthenticator(Authenticator):
             self.a1 = md5("%s:%s:%s" % (username, self.realm, password)).hexdigest()
             return self.a1
 
-        except self.model.DoesNotExist:
-            raise ValueError()
+        except self.model.DoesNotExist, e:
+            raise ValueError(e)

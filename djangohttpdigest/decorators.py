@@ -44,7 +44,6 @@ def protect_digest_model(model, realm, realm_field='realm', username_field='user
 
                 if parsed_header['realm'] == realm:
                     if password_field:
-                        print realm_field
                         authenticator = ClearTextModelAuthenticator(model=model, realm=realm, realm_field=realm_field, username_field=username_field, password_field=password_field)
                     else:
                         authenticator = ModelAuthenticator(model=model, realm=realm, realm_field=realm_field, username_field=username_field, secret_field=secret_field)
