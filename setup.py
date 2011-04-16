@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 from setuptools import setup
 from distutils.command.install_data import install_data
@@ -8,11 +8,9 @@ import sys
 
 project_dir = 'djangohttpdigest'
 
-# Dynamically calculate the version based on django.VERSION.
-version = __import__('djangohttpdigest').__versionstr__
 setup(
     name = "djangohttpdigest",
-    version = version,
+    version = '0.2.3',
     url = 'http://devel.almad.net/trac/django-http-digest/',
     author = 'Lukas Linhart',
     author_email = 'bugs@almad.net',
@@ -22,9 +20,12 @@ setup(
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
+        "Framework :: Django",
         "License :: OSI Approved :: BSD License",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 2.5",
+        "Programming Language :: Python :: 2.6",
+        "Programming Language :: Python :: 2.7",
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ]
