@@ -1,0 +1,33 @@
+Django HTTP digest
+=========================
+
+Support for HTTP authentication (as in RFC 2617) with Djagno Web Framework.
+
+Unlike some other implementations, this one is not intended only for authorizing users, but as general view-protection backend, usable also for RESTful WS APIs in a simple manner:
+
+    from django.http import HttpResponse
+    from djangohttpdigest.decorators import protect_digest
+
+    @protect_digest(realm='simple', username='username', password='password')
+    def simpleprotected(request):
+        return HttpResponse('')
+        
+Or, be more in real world and have Your access data stored in Models, already hashed:
+
+    from django.http import HttpResponse
+    from djangohttpdigest.decorators import protect_digest_model
+
+    class ModelWithRealmSet(models.Model):
+        realm = models.CharField(max_length=30)
+        username = models.CharField(max_length=30)
+        secret = models.CharField(max_length=50)
+
+    @protect_digest_model(realm='simple',
+          model=ModelWithRealmSet,
+          realm_field='realm',
+          username_field='username',
+          secret_field='secret'
+    )
+    
+    def modelprotected(request):
+        return HttpResponse('')
