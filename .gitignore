@@ -1,11 +1,12 @@
-syntax: glob
 *.pyc
 *.ini
 *.swp
 *.orig
-.project
-.pydevproject
+/.project
+/.pydevproject
 *.db
 .settings
 *~
+/*.egg-info
 out.err
+/venv
