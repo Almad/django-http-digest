@@ -1,6 +1,6 @@
 import urllib2
 import logging
-from md5 import md5
+from hashlib import md5
 from djangohttpdigest.client import HttpDigestClient
 
 from django.db import transaction
@@ -100,3 +100,26 @@ class TestSimpleDigest(HttpTestCase):
 
         self._check_authentication_compatibility(path='/testapi/modelcleartextprotectedwithdefaultrealm/')
 
+    def test_authentication_works_with_query_args(self):
+        """ Tests URIs are available even when requested with query arguments. """
+        ClearTextModelWithDefaultRealm.objects.create(username='username', password='password')
+        transaction.commit()
+
+        auth_handler = urllib2.HTTPDigestAuthHandler()
+        auth_handler.add_password('simple', self.url, 'username', 'password')
+        opener = urllib2.build_opener(auth_handler)
+        
+        request = urllib2.Request(self.url+'/testapi/simpleprotected/?query=arg')
+
+        try:
+            response = opener.open(request)
+        except urllib2.HTTPError, err:
+            if err.fp:
+                error = ": %s" % err.fp.read()
+            else:
+                error = ''
+            logging.error("Error occured while opening HTTP %s" % error)
+            raise
+        self.assertEquals(200, response.code)
+        response.close()
+        

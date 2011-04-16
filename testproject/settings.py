@@ -49,4 +49,4 @@ INSTALLED_APPS = (
 )
 
 TEST_DATABASE_CHARSET="utf8"
-TEST_RUNNER='djangosanetesting.testrunner.DstNoseTestSuiteRunner'
+#TEST_RUNNER='djangosanetesting.testrunner.DstNoseTestSuiteRunner'

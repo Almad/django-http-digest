@@ -10,7 +10,7 @@ def protect_digest(realm, username, password):
     def _innerDecorator(function):
         def _wrapper(request, *args, **kwargs):
             
-            digestor = Digestor(method=request.method, path=request.path, realm=realm)
+            digestor = Digestor(method=request.method, path=request.get_full_path(), realm=realm)
             
             if request.META.has_key('HTTP_AUTHORIZATION'):
                 try:
@@ -35,7 +35,8 @@ def protect_digest_model(model, realm, realm_field='realm', username_field='user
     def _innerDecorator(function):
         def _wrapper(request, *args, **kwargs):
             
-            digestor = Digestor(method=request.method, path=request.path, realm=realm)
+            digestor = Digestor(method=request.method, path=request.get_full_path(), realm=realm)
+            
             if request.META.has_key('HTTP_AUTHORIZATION'):
                 try:
                     parsed_header = digestor.parse_authorization_header(request.META['HTTP_AUTHORIZATION'])
